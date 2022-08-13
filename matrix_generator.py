@@ -16,19 +16,19 @@ def generate_matrix():
     np.savetxt(PATH + "M2.txt", M2)
     print(" Matrix generated and saved.")
 
-    M3 = sparse.random(500, 100, density=0.25, data_rvs=np.random.randn)
+    M3 = sparse.random(2000, 50, density=0.25, data_rvs=np.random.randn)
     M3 = M3.toarray()
     np.savetxt(PATH + "M3.txt", M3)
     print(" Matrix generated and saved.")
 
-    M4 = sparse.random(2000, 50, density=0.25, data_rvs=np.random.randn)
+    M4 = sparse.random(2000, 1000, density=1, data_rvs=np.random.randn)
     M4 = M4.toarray()
     np.savetxt(PATH + "M4.txt", M4)
     print(" Matrix generated and saved.")
 
     return 0
 
-def generate_cond_matrix(n, cond_p=1e8):
+def generate_cond_matrix(n, cond_p=1e5):
     # cond_P = 10**2     # Condition number
     log_cond_P = np.log(cond_p)
     exp_vec = np.arange(-log_cond_P/4., log_cond_P * (n)/(4 * (n - 1)), log_cond_P/(2.*(n-1)))
