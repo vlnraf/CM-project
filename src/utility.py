@@ -12,7 +12,7 @@ def make_plot(normsGradient, relativeErrors, type = 'M1', experiment_name='M'):
         'weight': 'normal',
         'size': 20}
     plt.rc('font', **font)
-    fig, axs = plt.subplots(1, 2, figsize=(30, 8))
+    fig, axs = plt.subplots(1, 2, figsize=(20, 8))
     #relErrorPlot = fig.add_subplot(2,1,1)
     #gradientPlot = fig.add_subplot(2,1,2)
     axs[0].set_yscale('log')

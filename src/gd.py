@@ -43,7 +43,7 @@ class steepestGradientDescent():
                 return self.historyNorm, self.historyValue
 
             # calculate step along direction
-            alpha = self.function.stepsizeAlongGradientDirection()
+            alpha = self.function.stepsizeAlongDirection()
 
             # step too short
             # if alpha <= conf.mina:
