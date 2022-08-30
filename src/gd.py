@@ -32,11 +32,11 @@ class steepestGradientDescent():
 
             # Da aggiustare un po' il rate di convergenza
             #==============================================
-            if self.prevv != 0:
-                ratek = (self.v - self.fstar) / (self.prevv - self.fstar)
-                print(ratek)
+            # if self.prevv != 0:
+            #     ratek = (self.v - self.fstar) / (self.prevv - self.fstar)
+            #     print(ratek)
 
-            self.prevv = self.v
+            # self.prevv = self.v
             #==============================================
 
             # Norm of the gradient lower or equal of the epsilon
