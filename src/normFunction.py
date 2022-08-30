@@ -7,6 +7,15 @@ class normFunction():
         self.Q = np.matmul(np.transpose(A), A)
         self.dim = self.Q.shape[0]
 
+    def func_(self,x):
+        self.x = x
+        self.xT = x.T
+        self.xTx = np.matmul(self.xT, x)
+        self.Qx = np.matmul(self.Q, x)
+        self.xQx = np.matmul(self.xT, self.Qx)
+        fx = self.xQx / self.xTx
+        return -fx
+
     # fucntion to calculate the function f(x) and it's gradient grad(x)
     def calculate(self, x):
         # f(x) = x'Qx / x'x
