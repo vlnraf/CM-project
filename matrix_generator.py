@@ -21,7 +21,7 @@ def generate_matrix():
     np.savetxt(PATH + "M3.txt", M3)
     print(" Matrix generated and saved.")
 
-    M4 = sparse.random(2000, 1000, density=1, data_rvs=np.random.randn)
+    M4 = sparse.random(50, 2000, density=1, data_rvs=np.random.randn)
     M4 = M4.toarray()
     np.savetxt(PATH + "M4.txt", M4)
     print(" Matrix generated and saved.")

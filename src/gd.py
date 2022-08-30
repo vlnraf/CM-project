@@ -1,14 +1,17 @@
 from numpy import linalg as la
 
 class steepestGradientDescent():
-    def __init__(self, function, eps, maxIter, x=None, verbose = True):
+    def __init__(self, function, eps, maxIter, x=None, fstar=0, verbose = True):
         self.verbose = verbose
         self.function = function
         self.status = ''
         self.feval = 1
         self.eps = eps
         self.maxIter = maxIter
+        self.fstar = fstar
         self.x = x if x is not None else self.function.init_x()
+        self.prevv = 0
+
 
         self.v, self.g = function.calculate(self.x)
         self.ng = la.norm(self.g)
@@ -26,6 +29,15 @@ class steepestGradientDescent():
             self.historyValue.append(float(self.v))
             if self.verbose: 
                 self.print()
+
+            # Da aggiustare un po' il rate di convergenza
+            #==============================================
+            if self.prevv != 0:
+                ratek = (self.v - self.fstar) / (self.prevv - self.fstar)
+                print(ratek)
+
+            self.prevv = self.v
+            #==============================================
 
             # Norm of the gradient lower or equal of the epsilon
             if self.ng <= self.eps * self.ng0:
