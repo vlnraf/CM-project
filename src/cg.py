@@ -16,7 +16,7 @@ class conjugateGradient():
         self.pOld = -1 # it's the old value of p take a look at the theory of the conjugate gradient to understand what is p
         self.p = -self.g
         self.B = 0 #initial value of Beta
-        self.gTg = np.matmul(self.g.T, self.g)
+        self.gTg = np.dot(self.g.T, self.g)
         if self.eps < 0: # stopping criteria
             self.ng0 = - np.sqrt(self.gTg)
         else:
@@ -53,29 +53,30 @@ class conjugateGradient():
                 return self.historyNorm, self.historyValue
             
             # now we will update all the CG variables
+            g = self.g
             self.oldgTg  = self.gTg
+            self.pOld = self.p
             # lastx = self.x
             # update x 
             self.x = self.x + alpha * self.p
             self.v, self.g = self.function.calculate(self.x)
             self.feval = self.feval + 1
-            self.gTg = np.matmul(self.g.T, self.g)
+            self.gTg = np.dot(self.g.T, self.g)
 
             # calculate beta.
             if self.method == 'FR':
                 self.B = self.gTg / self.oldgTg
             elif self.method == 'PR':
                 y_hat = self.g - g
-                self.B  = np.dot(self.g.T, y_hat) / np.dot(g.T, g)
+                self.B  = np.dot(self.g.T, y_hat) / self.oldgTg 
             elif self.method == 'HS':
                 y_hat = self.g - g
                 self.B  = np.dot(self.g.T, y_hat) / np.dot(self.p.T, y_hat)
             else:
                 raise ValueError('Method not implemented')
             
-            self.pOld = self.p
+            #self.pOld = self.p
             self.p = -self.g + ((self.pOld)*self.B)
-            g = self.g
 
             if self.v <= - float("inf"):
                 self.status = 'unbounded'
