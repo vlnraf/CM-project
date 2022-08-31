@@ -54,7 +54,7 @@ class conjugateGradient():
             
             # now we will update all the CG variables
             self.oldgTg  = self.gTg
-            lastx = self.x
+            # lastx = self.x
             # update x 
             self.x = self.x + alpha * self.p
             self.v, self.g = self.function.calculate(self.x)
@@ -69,12 +69,13 @@ class conjugateGradient():
                 self.B  = np.dot(self.g.T, y_hat) / np.dot(g.T, g)
             elif self.method == 'HS':
                 y_hat = self.g - g
-                self.B  = np.dot(self.g.T, y_hat) / np.dot(p.T, y_hat)
+                self.B  = np.dot(self.g.T, y_hat) / np.dot(self.p.T, y_hat)
             else:
                 raise ValueError('Method not implemented')
             
             self.pOld = self.p
             self.p = -self.g + ((self.pOld)*self.B)
+            g = self.g
 
             if self.v <= - float("inf"):
                 self.status = 'unbounded'
