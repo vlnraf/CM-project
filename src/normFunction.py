@@ -8,7 +8,6 @@ class normFunction():
         self.dim = self.Q.shape[0]
 
     def func_(self,x):
-        self.x = x
         self.xT = x.T
         self.xTx = np.matmul(self.xT, x)
         self.Qx = np.matmul(self.Q, x)
@@ -16,16 +15,29 @@ class normFunction():
         fx = self.xQx / self.xTx
         return -fx
 
-    # fucntion to calculate the function f(x) and it's gradient grad(x)
-    def calculate(self, x):
-        # f(x) = x'Qx / x'x
-        self.x = x
+    def func_grad_(self, x):
         self.xT = x.T
         self.xTx = np.matmul(self.xT, x)
         self.Qx = np.matmul(self.Q, x)
         self.xQx = np.matmul(self.xT, self.Qx)
         f_x = self.xQx / self.xTx
         nabla_f = (2 * x * f_x) / self.xTx - (2 * self.Qx) / self.xTx
+
+        return nabla_f
+
+
+    # fucntion to calculate the function f(x) and it's gradient grad(x)
+    def calculate(self, x):
+        # f(x) = x'Qx / x'x
+        self.x = x
+        # self.xT = x.T
+        # self.xTx = np.matmul(self.xT, x)
+        # self.Qx = np.matmul(self.Q, x)
+        # self.xQx = np.matmul(self.xT, self.Qx)
+        # f_x = self.xQx / self.xTx
+        # nabla_f = (2 * x * f_x) / self.xTx - (2 * self.Qx) / self.xTx
+        f_x = -self.func_(self.x) # To display the value of the norm
+        nabla_f = self.func_grad_(self.x)
         self.f_x = -f_x  # it's -f(x)
         self.d = nabla_f
         self.dT = self.d.T
