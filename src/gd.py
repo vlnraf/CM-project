@@ -126,7 +126,7 @@ class GradientDescent():
                     self.log.info("Alpha too much small")
             except NoUpdate:
                 if self.verbose == True:
-                    self.log.info("The function is unbounded")
+                    self.log.info("optimal value reached")
                 break
             
             self.feval = self.feval + 1

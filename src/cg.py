@@ -1,19 +1,50 @@
 import numpy as np
+import logging
+
+class NoUpdate(Exception):
+    pass
+    # def print(self):
+    #     log.info("optimal value reached")
+
+class MaxIterations(Exception):
+    pass
+    # def print(self):
+    #     log.info("Stopped for iterations")
+
+class InvalidAlpha(Exception):
+    pass
+    # def print(self):
+    #     log.info("Alpha too much small")
+
+class UnboundedFunction(Exception):
+    pass
+    # def print(self):
+    #     log.info("The function is unbounded")
+
 
 class conjugateGradient():
-    def __init__(self, function, eps, iterations, method='FR', x = None, verbose = True):
+    def __init__(self, function, x, eps, fstar, method='FR', verbose = True):
         self.verbose = verbose
         self.function = function
         self.feval = 1
-        self.x = x if x is not None else self.function.init_x()
         self.eps = eps
-        self.iterations = iterations
+        self.fstar = fstar
+        self.x = x
+        self.Q = function.Q
+        self.prev_value = 0
+        self.ratek = 0
         self.method = method
+
+        # Logging
+        handlerPrint = logging.StreamHandler()
+        handlerPrint.setLevel(logging.DEBUG)
+        self.log = logging.getLogger("gradient-descent")
+        self.log.addHandler(handlerPrint)
+        self.log.setLevel(logging.DEBUG)
         
-        self.v, self.g = function.calculate(self.x)
-        # self.pOld = old value of p (see CG if you want to know what is p)
-        # self.p = new value of p
-        self.pOld = -1 # it's the old value of p take a look at the theory of the conjugate gradient to understand what is p
+        self.v = -self.function.func_value(self.x)
+        self.g = self.function.func_grad(self.x)
+        self.pOld = -1 # old value of p
         self.p = -self.g
         self.B = 0 #initial value of Beta
         self.gTg = np.dot(self.g.T, self.g)
@@ -22,14 +53,53 @@ class conjugateGradient():
         else:
             self.ng0 = 1
 
+        #arrays to store history
+        self.norm_history = []
+        self.function_value_history = []
+        self.error_history = []
+
+        def step(self):
+            v = self.function.func_value(self.x)
+            g = self.function.func_grad(self.x)
+            p = -g
+            self.norm_history.append(float(np.sqrt(self.gTg)))
+            self.hiostyrValue.append(float(self.v))
+
+        def run(self, maxIter):
+            assert maxIter > 1
+
+            self.maxIter = maxIter
+
+            if self.verbose == True:
+                self.log.debug("[start]")
+
+            for self.feval in range(0,maxIter+1):
+                try:
+                    self.step()
+                except UnboundedFunction:
+                    if self.verbose == True:
+                        self.log.info("The function is unbounded")
+                except MaxIterations:
+                    if self.verbose == True:
+                        self.log.info("Stopped for iterations")
+                except InvalidAlpha:
+                    if self.verbose == True:
+                        self.log.info("Alpha too much small")
+                except NoUpdate:
+                    if self.verbose == True:
+                        self.log.info("optimal value reached")
+                    break
+                
+                self.feval = self.feval + 1
+
+            if self.verbose == True:
+                self.log.debug("[end]")
+                
+
+            return self.norm_history, self.function_value_history, self.error_history
+
     def ConjugateGradient(self):
-        self.historyNorm = []
-        self.historyValue = []
-        v, g = self.function.calculate(self.x)
-        p = -g
         while True:
-            self.historyNorm.append(float(np.sqrt(self.gTg)))
-            self.historyValue.append(float(self.v))
             if self.verbose:
                 print("Iteration number %d, -f(x) = %0.4f, gradientNorm = %f"%( self.feval, self.v, np.sqrt(self.gTg)))
             # If the norm of the gradient is lower or equal of eps then we stop
