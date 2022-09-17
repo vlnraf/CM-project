@@ -81,3 +81,33 @@ class conjugateGradient():
             if self.v <= - float("inf"):
                 self.status = 'unbounded'
                 return self.historyNorm, self.historyValue
+
+
+
+    def exactLineSearch(self, d=None):
+        if d is not None:
+            self.d = d
+            self.dT = d.T
+
+        dTd = np.dot(self.dT, self.d)
+        xTd = np.dot(self.xT, self.d)
+        self.xTx = np.dot(self.xT, self.x)
+        Qd = np.dot(self.Q, self.d)
+        xQd = np.dot(self.xT, Qd)
+        dQd = np.dot(self.dT, Qd)
+        # a = (d.T*d)(x*Q*d) - (d.T*Q*d)*(x.T*d)  
+        a = float(dTd * xQd - dQd * xTd)
+        # b = (xTx)(dQd) - (dTd)(xQx)
+        b = float(self.xTx * dQd - dTd * self.function.xQx)
+        # c = (xTd)(xQx) - (xTx)(xQd)
+        c = float(xTd * self.function.xQx - self.xTx * xQd)
+        # now alpha is the solution of ax^2+bx+c : x > 0 
+        coef = np.array([a, b, c])
+        roots = np.roots(coef)
+        if roots[0] < 0 and roots[1] < 0:
+            return 0
+        elif roots[0] < 0:
+            return roots[1]
+        elif roots[1] < 0:
+            return roots[0]
+        return np.min([roots])

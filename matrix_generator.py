@@ -29,7 +29,7 @@ def generate_matrix():
     return 0
 
 def generate_cond_matrix(n, cond_p=1e5):
-    # cond_P = 10**2     # Condition number
+    # reference: https://gist.github.com/bstellato/23322fe5d87bb71da922fbc41d658079
     log_cond_P = np.log(cond_p)
     exp_vec = np.arange(-log_cond_P/4., log_cond_P * (n)/(4 * (n - 1)), log_cond_P/(2.*(n-1)))
     s = np.exp(exp_vec)

@@ -1,38 +1,32 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
 
-def load_matrix(type):
-    PATH = "../matrix/"
-    M = np.loadtxt(PATH + type)
-
+def load_matrix(matrix_path):
+    M = np.loadtxt(matrix_path)
     return M
 
-def make_plot(normsGradient, relativeErrors, type = 'M1', experiment_name='M'):
-    font = {'family': 'DejaVu Sans',
+def make_plot(normsGradient, relativeErrors, plot_path='plot/', type = 'M1'):
+    font = {'family': 'serif',
         'weight': 'normal',
         'size': 20}
+
     plt.rc('font', **font)
     fig, axs = plt.subplots(1, 2, figsize=(20, 8))
-    #relErrorPlot = fig.add_subplot(2,1,1)
-    #gradientPlot = fig.add_subplot(2,1,2)
     axs[0].set_yscale('log')
     axs[1].set_yscale('log')
     
-    # Title
     fig.suptitle(
         'Matrix Type  ' + type + ' Relative error and gradient norm')
-    
-    for i in range(len(relativeErrors)):
-        relativeErrors[i] = [max(err, 1e-20) for err in relativeErrors[i]]
-        
-        x = list(range(len(relativeErrors[i])))
-        axs[0].plot(x, relativeErrors[i])
-        axs[1].plot(x, normsGradient[i])
+
+    x = list(range(len(relativeErrors)))
+    axs[0].plot(x, relativeErrors)
+    axs[1].plot(x, normsGradient)
     
     axs[1].set_xlabel("Iterations")
     axs[1].set_ylabel("Norm")
     axs[0].set_xlabel("Iterations")
     axs[0].set_ylabel("Relative Error")
 
-    plot_path = 'plot/'
-    plt.savefig(plot_path + experiment_name + '.png')
+    Path(plot_path).mkdir(exist_ok=True)
+    plt.savefig(plot_path + type + '.png')
