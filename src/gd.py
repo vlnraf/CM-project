@@ -3,28 +3,25 @@ import numpy as np
 import logging
 
 
-# Logging
-handlerPrint = logging.StreamHandler()
-handlerPrint.setLevel(logging.DEBUG)
-log = logging.getLogger("gradient-descent")
-log.addHandler(handlerPrint)
-log.setLevel(logging.DEBUG)
-
 class NoUpdate(Exception):
-    def print(self):
-        log.info("optimal value reached")
+    pass
+    # def print(self):
+    #     log.info("optimal value reached")
 
 class MaxIterations(Exception):
-    def print(self):
-        log.info("Stopped for iterations")
+    pass
+    # def print(self):
+    #     log.info("Stopped for iterations")
 
 class InvalidAlpha(Exception):
-    def print(self):
-        log.info("Alpha too much small")
+    pass
+    # def print(self):
+    #     log.info("Alpha too much small")
 
 class UnboundedFunction(Exception):
-    def print(self):
-        log.info("The function is unbounded")
+    pass
+    # def print(self):
+    #     log.info("The function is unbounded")
 
 
 class GradientDescent():
@@ -35,10 +32,16 @@ class GradientDescent():
         self.eps = eps
         self.fstar = fstar
         self.x = x
-        self.xT = self.x.T
         self.Q = function.Q
         self.prev_value = 0
         self.ratek = 0
+
+        # Logging
+        handlerPrint = logging.StreamHandler()
+        handlerPrint.setLevel(logging.DEBUG)
+        self.log = logging.getLogger("gradient-descent")
+        self.log.addHandler(handlerPrint)
+        self.log.setLevel(logging.DEBUG)
 
 
         self.v = -self.function.func_value(self.x)
@@ -96,10 +99,9 @@ class GradientDescent():
             raise UnboundedFunction()
 
         self.ng = la.norm(self.g)
-        self.xT = self.x.T
 
         if self.verbose == True:
-            log.debug("iteration %d, f(x) = %0.4f, ||gradient(f(x))|| = %f, alpha=%0.4f, rate=%0.4f" %(self.feval, self.v, self.ng, alpha, self.ratek)) 
+            self.log.debug("iteration %d, f(x) = %0.4f, ||gradient(f(x))|| = %f, alpha=%0.4f, rate=%0.4f" %(self.feval, self.v, self.ng, alpha, self.ratek)) 
 
     def run(self, maxIter=500):
 
@@ -108,29 +110,29 @@ class GradientDescent():
         self.maxIter = maxIter
 
         if self.verbose == True:
-            log.debug("[start]")
+            self.log.debug("[start]")
 
         for self.feval in range(0,maxIter+1):
             try:
                 self.step()
-            except UnboundedFunction as err:
+            except UnboundedFunction:
                 if self.verbose == True:
-                    err.print()
-            except MaxIterations as err:
+                    self.log.info("The function is unbounded")
+            except MaxIterations:
                 if self.verbose == True:
-                    err.print()
-            except InvalidAlpha as err:
+                    self.log.info("Stopped for iterations")
+            except InvalidAlpha:
                 if self.verbose == True:
-                    err.print()
-            except NoUpdate as err:
+                    self.log.info("Alpha too much small")
+            except NoUpdate:
                 if self.verbose == True:
-                    err.print()
+                    self.log.info("The function is unbounded")
                 break
             
             self.feval = self.feval + 1
 
         if self.verbose == True:
-            log.debug("[end]")
+            self.log.debug("[end]")
             
 
         return self.norm_history, self.function_value_history, self.error_history
@@ -140,10 +142,10 @@ class GradientDescent():
         self.d = self.g
 
         dTd = np.dot(self.d.T, self.d)
-        xTd = np.dot(self.xT, self.d)
-        self.xTx = np.dot(self.xT, self.x)
+        xTd = np.dot(self.x.T, self.d)
+        self.xTx = np.dot(self.x.T, self.x)
         Qd = np.dot(self.Q, self.d)
-        xQd = np.dot(self.xT, Qd)
+        xQd = np.dot(self.x.T, Qd)
         dQd = np.dot(self.d.T, Qd)
         a = float(dTd * xQd - dQd * xTd)
         b = float(self.xTx * dQd - dTd * self.function.xQx)

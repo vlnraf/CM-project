@@ -23,8 +23,6 @@ class Norm():
         self.xQx = np.dot(self.xT, self.Qx)
         f_x = self.xQx / self.xTx
         nabla_f = (2 * x * f_x) / self.xTx - (2 * self.Qx) / self.xTx
-        # self.d = nabla_f
-        # self.dT = self.d.T
 
         return nabla_f
 

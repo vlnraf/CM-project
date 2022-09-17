@@ -1,29 +1,31 @@
 import numpy as np
 import numpy.linalg as la
 import scipy.sparse as sparse
+from pathlib import Path
 
 np.random.seed(42)
 
 def generate_matrix():
-    PATH = './matrix/'
+    matrix_path = './matrix/'
+    Path(matrix_path).mkdir(exist_ok=True)
     M1 = sparse.random(500, 100, density=1, data_rvs=np.random.randn)
     M1 = M1.toarray()
-    np.savetxt(PATH + "M1.txt", M1)
+    np.savetxt(matrix_path + "M1.txt", M1)
     print(" Matrix generated and saved.")
 
     M2 = sparse.random(2000, 50, density=1, data_rvs=np.random.randn)
     M2 = M2.toarray()
-    np.savetxt(PATH + "M2.txt", M2)
+    np.savetxt(matrix_path + "M2.txt", M2)
     print(" Matrix generated and saved.")
 
     M3 = sparse.random(2000, 50, density=0.25, data_rvs=np.random.randn)
     M3 = M3.toarray()
-    np.savetxt(PATH + "M3.txt", M3)
+    np.savetxt(matrix_path + "M3.txt", M3)
     print(" Matrix generated and saved.")
 
     M4 = sparse.random(50, 2000, density=1, data_rvs=np.random.randn)
     M4 = M4.toarray()
-    np.savetxt(PATH + "M4.txt", M4)
+    np.savetxt(matrix_path + "M4.txt", M4)
     print(" Matrix generated and saved.")
 
     return 0
@@ -40,8 +42,9 @@ def generate_cond_matrix(n, cond_p=1e5):
     P = P.dot(P.T)
 
 
-    PATH = './matrix/'
-    np.savetxt(PATH + "M5.txt", P)
+    matrix_path = './matrix/'
+    Path(matrix_path).mkdir(exist_ok=True)
+    np.savetxt(matrix_path + "M5.txt", P)
     print(" Matrix generated and saved.")
 
     return P
