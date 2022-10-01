@@ -37,11 +37,11 @@ class GradientDescent():
         self.ratek = 0
 
         # Logging
-        handlerPrint = logging.StreamHandler()
-        handlerPrint.setLevel(logging.DEBUG)
-        self.log = logging.getLogger("gradient-descent")
-        self.log.addHandler(handlerPrint)
-        self.log.setLevel(logging.DEBUG)
+        # handlerPrint = logging.StreamHandler()
+        # handlerPrint.setLevel(logging.DEBUG)
+        # self.log = logging.getLogger("gradient-descent")
+        # self.log.addHandler(handlerPrint)
+        # self.log.setLevel(logging.DEBUG)
 
 
         self.v = -self.function.func_value(self.x)
@@ -101,7 +101,7 @@ class GradientDescent():
         self.ng = la.norm(self.g)
 
         if self.verbose == True:
-            self.log.debug("iteration %d, f(x) = %0.4f, ||gradient(f(x))|| = %f, alpha=%0.4f, rate=%0.4f" %(self.feval, self.v, self.ng, alpha, self.ratek)) 
+            print("iteration %d, f(x) = %0.4f, ||gradient(f(x))|| = %f, alpha=%0.4f, rate=%0.4f" %(self.feval, self.v, self.ng, alpha, self.ratek)) 
 
     def run(self, maxIter=500):
 
@@ -110,30 +110,30 @@ class GradientDescent():
         self.maxIter = maxIter
 
         if self.verbose == True:
-            self.log.debug("[start]")
+            print("[start]")
 
         for self.feval in range(0,maxIter+1):
             try:
                 self.step()
             except UnboundedFunction:
                 if self.verbose == True:
-                    self.log.info("The function is unbounded")
+                    print("The function is unbounded")
             except MaxIterations:
                 if self.verbose == True:
-                    self.log.info("Stopped for iterations")
+                    print("Stopped for iterations")
             except InvalidAlpha:
                 if self.verbose == True:
-                    self.log.info("Alpha too much small")
+                    print("Alpha too much small")
             except NoUpdate:
                 if self.verbose == True:
-                    self.log.info("optimal value reached")
+                    print("optimal value reached")
                 break
             
             self.feval = self.feval + 1
 
         if self.verbose == True:
-            self.log.debug("[end]")
-            
+            print("[end]")
+
 
         return self.norm_history, self.function_value_history, self.error_history
 
@@ -141,12 +141,12 @@ class GradientDescent():
     def exactLineSearch(self):
         self.d = self.g
 
-        dTd = np.dot(self.d.T, self.d)
-        xTd = np.dot(self.x.T, self.d)
-        self.xTx = np.dot(self.x.T, self.x)
-        Qd = np.dot(self.Q, self.d)
-        xQd = np.dot(self.x.T, Qd)
-        dQd = np.dot(self.d.T, Qd)
+        dTd = np.matmul(self.d.T, self.d)
+        xTd = np.matmul(self.x.T, self.d)
+        self.xTx = np.matmul(self.x.T, self.x)
+        Qd = np.matmul(self.Q, self.d)
+        xQd = np.matmul(self.x.T, Qd)
+        dQd = np.matmul(self.d.T, Qd)
         a = float(dTd * xQd - dQd * xTd)
         b = float(self.xTx * dQd - dTd * self.function.xQx)
         c = float(xTd * self.function.xQx - self.xTx * xQd)

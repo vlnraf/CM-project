@@ -20,6 +20,8 @@ class UnboundedFunction(Exception):
     pass
     # def print(self):
     #     log.info("The function is unbounded")
+class ValueError(Exception):
+    pass
 
 
 class conjugateGradient():
@@ -35,13 +37,6 @@ class conjugateGradient():
         self.ratek = 0
         self.method = method
 
-        # Logging
-        handlerPrint = logging.StreamHandler()
-        handlerPrint.setLevel(logging.DEBUG)
-        self.log = logging.getLogger("gradient-descent")
-        self.log.addHandler(handlerPrint)
-        self.log.setLevel(logging.DEBUG)
-        
         self.v = -self.function.func_value(self.x)
         self.g = self.function.func_grad(self.x)
         self.pOld = -1 # old value of p
@@ -57,121 +52,118 @@ class conjugateGradient():
         self.norm_history = []
         self.function_value_history = []
         self.error_history = []
+        
 
-        def step(self):
-            v = self.function.func_value(self.x)
-            g = self.function.func_grad(self.x)
-            p = -g
-            self.norm_history.append(float(np.sqrt(self.gTg)))
-            self.hiostyrValue.append(float(self.v))
+    def step(self):
+        # self.v = self.function.func_value(self.x)
+        # p = -g
+        self.norm_history.append(float(np.sqrt(self.gTg)))
+        self.function_value_history.append(float(self.v))
+        self.error_history.append(float(abs(self.v - self.fstar) / abs(self.fstar)))
 
-        def run(self, maxIter):
-            assert maxIter > 1
+        g = self.function.func_grad(self.x)
+        #     # Da aggiustare un po' il rate di convergenza
+        #     #==============================================
+        if self.prev_value != 0:
+            self.ratek = (self.v - self.fstar) / (self.prev_value - self.fstar)
 
-            self.maxIter = maxIter
+        self.prev_value = self.v
+        #     #==============================================
 
-            if self.verbose == True:
-                self.log.debug("[start]")
+        alpha = self.exactLineSearch(-self.p)
 
-            for self.feval in range(0,maxIter+1):
-                try:
-                    self.step()
-                except UnboundedFunction:
-                    if self.verbose == True:
-                        self.log.info("The function is unbounded")
-                except MaxIterations:
-                    if self.verbose == True:
-                        self.log.info("Stopped for iterations")
-                except InvalidAlpha:
-                    if self.verbose == True:
-                        self.log.info("Alpha too much small")
-                except NoUpdate:
-                    if self.verbose == True:
-                        self.log.info("optimal value reached")
-                    break
-                
-                self.feval = self.feval + 1
+        if np.sqrt(self.gTg) <= self.eps * self.ng0:
+            raise NoUpdate()
 
-            if self.verbose == True:
-                self.log.debug("[end]")
-                
+        # if we iterate more times then maxIter we stop
+        if self.feval >= self.maxIter:
+            raise MaxIterations()
 
-            return self.norm_history, self.function_value_history, self.error_history
+        # step too short
+        # if alpha <= conf.mina:
+        if alpha <= 1e-16:
+            raise InvalidAlpha()
 
-    def ConjugateGradient(self):
-        while True:
-            if self.verbose:
-                print("Iteration number %d, -f(x) = %0.4f, gradientNorm = %f"%( self.feval, self.v, np.sqrt(self.gTg)))
-            # If the norm of the gradient is lower or equal of eps then we stop
-            if np.sqrt(self.gTg) <= self.eps * self.ng0:
-                self.status = 'optimal'
-                return self.historyNorm, self.historyValue
+        # now we will update all the CG variables
+        g = self.g
+        self.oldgTg  = self.gTg
+        self.pOld = self.p
 
-            # If we reach the maximum number of iteration we stop
-            if self.feval > self.iterations:
-                self.status = 'stopped'
-                return self.historyNorm, self.historyValue
+        self.x = self.x + alpha * self.p
+        self.v = - self.function.func_value(self.x)
+        self.g = self.function.func_grad(self.x)
+        self.feval = self.feval + 1
+        self.gTg = np.dot(self.g.T, self.g)
 
-            # calculate step along direction
-            # -direction because model calculate the derivative of 
-            # phi' = f'(x-aplha*d)
-            alpha = self.function.stepsizeAlongDirection(-self.p)
+        # calculate beta.
+        if self.method == 'FR':
+            self.B = self.gTg / self.oldgTg
+        elif self.method == 'PR':
+            y_hat = self.g - g
+            self.B  = np.dot(self.g.T, y_hat) / self.oldgTg 
+        elif self.method == 'HS':
+            y_hat = self.g - g
+            self.B  = np.dot(self.g.T, y_hat) / np.dot(self.p.T, y_hat)
+        else:
+            raise ValueError('Method not implemented')
+        
+        self.p = -self.g + ((self.pOld)*self.B)
 
-            # if the stop is too short we stop
-            if alpha <= 1e-16:
-                self.status = 'error'
-                return self.historyNorm, self.historyValue
+        # Unbounded function controll
+        if self.v <= - float("inf"):
+            raise UnboundedFunction()
+
+        if self.verbose == True:
+            print("iteration %d, f(x) = %0.4f, ||gradient(f(x))|| = %f, alpha=%0.4f, rate=%0.4f" %(self.feval, self.v, self.gTg, alpha, self.ratek)) 
+
+
+
+    def run(self, maxIter=500):
+        assert maxIter > 1
+
+        self.maxIter = maxIter
+
+        if self.verbose == True:
+            print("[start]")
+
+        for self.feval in range(0,maxIter+1):
+            try:
+                self.step()
+            except UnboundedFunction:
+                if self.verbose == True:
+                    print("The function is unbounded")
+            except MaxIterations:
+                if self.verbose == True:
+                    print("Stopped for iterations")
+            except InvalidAlpha:
+                if self.verbose == True:
+                    print("Alpha too much small")
+            except NoUpdate:
+                if self.verbose == True:
+                    print("optimal value reached")
+                break
             
-            # now we will update all the CG variables
-            g = self.g
-            self.oldgTg  = self.gTg
-            self.pOld = self.p
-            # lastx = self.x
-            # update x 
-            self.x = self.x + alpha * self.p
-            self.v, self.g = self.function.calculate(self.x)
             self.feval = self.feval + 1
-            self.gTg = np.dot(self.g.T, self.g)
 
-            # calculate beta.
-            if self.method == 'FR':
-                self.B = self.gTg / self.oldgTg
-            elif self.method == 'PR':
-                y_hat = self.g - g
-                self.B  = np.dot(self.g.T, y_hat) / self.oldgTg 
-            elif self.method == 'HS':
-                y_hat = self.g - g
-                self.B  = np.dot(self.g.T, y_hat) / np.dot(self.p.T, y_hat)
-            else:
-                raise ValueError('Method not implemented')
+        if self.verbose == True:
+            print("[end]")
             
-            #self.pOld = self.p
-            self.p = -self.g + ((self.pOld)*self.B)
 
-            if self.v <= - float("inf"):
-                self.status = 'unbounded'
-                return self.historyNorm, self.historyValue
+        return self.norm_history, self.function_value_history, self.error_history
 
 
+    def exactLineSearch(self, d):
+        self.d = d
 
-    def exactLineSearch(self, d=None):
-        if d is not None:
-            self.d = d
-            self.dT = d.T
-
-        dTd = np.dot(self.dT, self.d)
-        xTd = np.dot(self.xT, self.d)
-        self.xTx = np.dot(self.xT, self.x)
-        Qd = np.dot(self.Q, self.d)
-        xQd = np.dot(self.xT, Qd)
-        dQd = np.dot(self.dT, Qd)
-        # a = (d.T*d)(x*Q*d) - (d.T*Q*d)*(x.T*d)  
+        dTd = np.matmul(self.d.T, self.d)
+        xTd = np.matmul(self.x.T, self.d)
+        self.xTx = np.matmul(self.x.T, self.x)
+        Qd = np.matmul(self.Q, self.d)
+        xQd = np.matmul(self.x.T, Qd)
+        dQd = np.matmul(self.d.T, Qd)
         a = float(dTd * xQd - dQd * xTd)
-        # b = (xTx)(dQd) - (dTd)(xQx)
         b = float(self.xTx * dQd - dTd * self.function.xQx)
-        # c = (xTd)(xQx) - (xTx)(xQd)
         c = float(xTd * self.function.xQx - self.xTx * xQd)
-        # now alpha is the solution of ax^2+bx+c : x > 0 
         coef = np.array([a, b, c])
         roots = np.roots(coef)
         if roots[0] < 0 and roots[1] < 0:

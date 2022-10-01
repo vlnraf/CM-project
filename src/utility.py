@@ -17,14 +17,14 @@ def make_plot(normsGradient, relativeErrors, plot_path='plot/', type = 'M1'):
     axs[1].set_yscale('log')
     
     fig.suptitle(
-        'Matrix Type  ' + type + ' Relative error and gradient norm')
+        'Matrix Type  ' + type + ' Relative error and Gradient norm')
 
     x = list(range(len(relativeErrors)))
     axs[0].plot(x, relativeErrors)
     axs[1].plot(x, normsGradient)
     
     axs[1].set_xlabel("Iterations")
-    axs[1].set_ylabel("Norm")
+    axs[1].set_ylabel("Gradient Norm")
     axs[0].set_xlabel("Iterations")
     axs[0].set_ylabel("Relative Error")
 
