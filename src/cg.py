@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+from numpy import linalg as la
 
 class NoUpdate(Exception):
     pass
@@ -43,6 +44,7 @@ class conjugateGradient():
         self.p = -self.g
         self.B = 0 #initial value of Beta
         self.gTg = np.dot(self.g.T, self.g)
+        self.ng = la.norm(self.gTg) 
         if self.eps < 0: # stopping criteria
             self.ng0 = - np.sqrt(self.gTg)
         else:
@@ -72,7 +74,7 @@ class conjugateGradient():
 
         alpha = self.exactLineSearch(-self.p)
 
-        if np.sqrt(self.gTg) <= self.eps * self.ng0:
+        if self.ng <= self.eps * self.ng0:
             raise NoUpdate()
 
         # if we iterate more times then maxIter we stop
@@ -94,6 +96,7 @@ class conjugateGradient():
         self.g = self.function.func_grad(self.x)
         self.feval = self.feval + 1
         self.gTg = np.dot(self.g.T, self.g)
+        self.ng = la.norm(self.gTg) 
 
         # calculate beta.
         if self.method == 'FR':
