@@ -27,6 +27,11 @@ class ValueError(Exception):
 
 class conjugateGradient():
     def __init__(self, function, x, eps, fstar, method='FR', verbose = True):
+        #arrays to store history
+        self.norm_history = []
+        self.function_value_history = []
+        self.error_history = []
+
         self.verbose = verbose
         self.function = function
         self.feval = 1
@@ -50,10 +55,6 @@ class conjugateGradient():
         else:
             self.ng0 = 1
 
-        #arrays to store history
-        self.norm_history = []
-        self.function_value_history = []
-        self.error_history = []
         
 
     def step(self):

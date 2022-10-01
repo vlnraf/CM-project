@@ -26,6 +26,11 @@ class UnboundedFunction(Exception):
 
 class GradientDescent():
     def __init__(self, function, x, eps=1e-5, fstar=0, verbose = True):
+        #arrays to store history
+        self.norm_history = []
+        self.function_value_history = []
+        self.error_history = []
+
         self.verbose = verbose
         self.function = function
         self.feval = 1
@@ -36,14 +41,6 @@ class GradientDescent():
         self.prev_value = 0
         self.ratek = 0
 
-        # Logging
-        # handlerPrint = logging.StreamHandler()
-        # handlerPrint.setLevel(logging.DEBUG)
-        # self.log = logging.getLogger("gradient-descent")
-        # self.log.addHandler(handlerPrint)
-        # self.log.setLevel(logging.DEBUG)
-
-
         self.v = -self.function.func_value(self.x)
         self.g = self.function.func_grad(self.x)
         self.ng = la.norm(self.g)
@@ -53,10 +50,6 @@ class GradientDescent():
             self.ng0 = 1
 
 
-        #arrays to store history
-        self.norm_history = []
-        self.function_value_history = []
-        self.error_history = []
 
     def step(self):
 
