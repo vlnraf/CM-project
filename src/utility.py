@@ -17,7 +17,7 @@ def make_plot(normsGradient, relativeErrors, plot_path='plot/', type = 'M1'):
     axs[1].set_yscale('log')
     
     fig.suptitle(
-        'Matrix Type  ' + type + ' Relative error and Gradient norm')
+        'Matrix Type ' + type + ' Relative error and Gradient norm')
 
     x = list(range(len(relativeErrors)))
     axs[0].plot(x, relativeErrors)
@@ -30,3 +30,6 @@ def make_plot(normsGradient, relativeErrors, plot_path='plot/', type = 'M1'):
 
     Path(plot_path).mkdir(exist_ok=True)
     plt.savefig(plot_path + type + '.png')
+
+def generate_starting_point(dim):
+    return np.random.rand(dim, 1)

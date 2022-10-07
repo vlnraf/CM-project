@@ -3,35 +3,50 @@ import numpy as np
 
 class Norm():
     def __init__(self, A):
+        '''
+        Initialize the 2-Norm function on matrix A
+
+        Parameters
+
+            A : Matrix
+        '''
         self.A = A
         self.Q = np.matmul(np.transpose(A), A)
         self.dim = self.Q.shape[0]
 
 
     def func_value(self,x):
+        '''
+        Function value to minimize
+
+        Parameters
+
+            x : vector x_k
+
+
+        Return
+
+            -self.fx : negate function value [f(x) = (x^T M x) / x^T x , where M = A^T A] to deal with a minimization problem
+        '''
         self.xT = x.T
         self.xTx = np.matmul(self.xT, x)
         self.Qx = np.matmul(self.Q, x)
         self.xQx = np.matmul(self.xT, self.Qx)
-        fx = self.xQx / self.xTx
-        return -fx
+        self.fx = self.xQx / self.xTx
+        return -self.fx
 
     def func_grad(self, x):
-        self.xT = x.T
-        self.xTx = np.matmul(self.xT, x)
-        self.Qx = np.matmul(self.Q, x)
-        self.xQx = np.matmul(self.xT, self.Qx)
-        f_x = self.xQx / self.xTx
-        nabla_f = (2 * x * f_x) / self.xTx - (2 * self.Qx) / self.xTx
+        '''
+        Gradient of the function
 
-        return nabla_f
+        Parameters
+
+            x : vector x_k
 
 
-    def compute(self, x):
-        self.x = x
-        self.f_x = self.func_value(self.x) 
-        nabla_f = self.func_grad(self.x)
-        return -self.f_x, nabla_f
+        Return
 
-    def init_x(self):
-        return np.random.rand(self.dim, 1)
+            self.nabla_f : gradient of -fx
+        '''
+        self.nabla_f = (2 * x * self.fx) / self.xTx - (2 * self.Qx) / self.xTx
+        return self.nabla_f

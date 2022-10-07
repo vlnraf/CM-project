@@ -1,39 +1,40 @@
 from numpy import linalg as la
 import numpy as np
-import logging
 
 
 class NoUpdate(Exception):
     pass
-    # def print(self):
-    #     log.info("optimal value reached")
 
 class MaxIterations(Exception):
     pass
-    # def print(self):
-    #     log.info("Stopped for iterations")
 
 class InvalidAlpha(Exception):
     pass
-    # def print(self):
-    #     log.info("Alpha too much small")
 
 class UnboundedFunction(Exception):
     pass
-    # def print(self):
-    #     log.info("The function is unbounded")
 
 
 class GradientDescent():
     def __init__(self, function, x, eps=1e-5, fstar=0, verbose = True):
-        #arrays to store history
+        '''
+        Initialize the gradient descent class
+
+        Parameters
+
+            function : function to minimize [f(x) = (x^T M x) / x^T x , where M = A^T A]
+            x : starting point
+            eps : stopping criteria
+            fstar : optimal value of the function
+            verbose : to print values
+        '''
         self.norm_history = []
         self.function_value_history = []
         self.error_history = []
 
         self.verbose = verbose
         self.function = function
-        self.feval = 1
+        self.iter = 1
         self.eps = eps
         self.fstar = fstar
         self.x = x
@@ -41,62 +42,70 @@ class GradientDescent():
         self.prev_value = 0
         self.ratek = 0
 
-        self.v = -self.function.func_value(self.x)
-        self.g = self.function.func_grad(self.x)
-        self.ng = la.norm(self.g)
+        self.f_value = -self.function.func_value(self.x)
+        self.f_gradient = self.function.func_grad(self.x)
+        self.gradient_norm = la.norm(self.f_gradient)
         if self.eps < 0:
-            self.ng0 = - self.ng
+            self.initial_gradient_norm = - self.gradient_norm
         else:
-            self.ng0 = 1
+            self.initial_gradient_norm = 1
 
 
 
     def step(self):
+        '''
+        Gradient descent step to do at every iteration
+        '''
 
-        self.norm_history.append(float(self.ng))
-        self.function_value_history.append(float(self.v))
-        self.error_history.append(float(abs(self.v - self.fstar)/abs(self.fstar)))
+        self.norm_history.append(float(self.gradient_norm))
+        self.function_value_history.append(float(self.f_value))
+        self.error_history.append(float(abs(self.f_value - self.fstar)/abs(self.fstar)))
 
 
-        #     # Da aggiustare un po' il rate di convergenza
-        #     #==============================================
         if self.prev_value != 0:
-            self.ratek = (self.v - self.fstar) / (self.prev_value - self.fstar)
+            self.ratek = (self.f_value - self.fstar) / (self.prev_value - self.fstar)
 
-        self.prev_value = self.v
-        #     #==============================================
+        self.prev_value = self.f_value
         
 
-        # run the exact line search
         alpha = self.exactLineSearch()
 
-        # Norm of the gradient lower or equal of the epsilon
-        if self.ng <= self.eps * self.ng0:
+        if self.gradient_norm <= self.eps * self.initial_gradient_norm:
             raise NoUpdate()
 
-        # if we iterate more times then maxIter we stop
-        if self.feval >= self.maxIter:
+        if self.iter >= self.maxIter:
             raise MaxIterations()
 
-        # step too short
-        # if alpha <= conf.mina:
         if alpha <= 1e-16:
             raise InvalidAlpha()
 
-        self.x = self.x - alpha * self.g
-        self.v = -self.function.func_value(self.x)
-        self.g = self.function.func_grad(self.x)
+        self.x = self.x - alpha * self.f_gradient
+        self.f_value = -self.function.func_value(self.x)
+        self.f_gradient = self.function.func_grad(self.x)
 
-        # Unbounded function controll
-        if self.v <= - float("inf"):
+        if self.f_value <= - float("inf"):
             raise UnboundedFunction()
 
-        self.ng = la.norm(self.g)
+        self.gradient_norm = la.norm(self.f_gradient)
 
         if self.verbose == True:
-            print("iteration %d, f(x) = %0.4f, ||gradient(f(x))|| = %f, alpha=%0.4f, rate=%0.4f" %(self.feval, self.v, self.ng, alpha, self.ratek)) 
+            print("iteration %d, f(x) = %0.4f, ||gradient(f(x))|| = %f, alpha=%0.4f, rate=%0.4f" %(self.iter, self.f_value, self.gradient_norm, alpha, self.ratek)) 
 
     def run(self, maxIter=500):
+        '''
+        Function to run the algorithm
+
+        Parameters
+
+            maxIter : max number of iterations before stopping the algorithm
+
+
+        Return
+
+            self.norm_history : array containing the values of the norm of the gradient until stop
+            self.function_value_history : array containing the values of the function norm until stop
+            self.error_history : array containing the values of errors between the function value at iteration k and the optimal value until stop
+        '''
 
         assert maxIter > 1
 
@@ -105,7 +114,7 @@ class GradientDescent():
         if self.verbose == True:
             print("[start]")
 
-        for self.feval in range(0,maxIter+1):
+        for self.iter in range(0,maxIter+1):
             try:
                 self.step()
             except UnboundedFunction:
@@ -122,7 +131,7 @@ class GradientDescent():
                     print("optimal value reached")
                 break
             
-            self.feval = self.feval + 1
+            self.iter = self.iter + 1
 
         if self.verbose == True:
             print("[end]")
@@ -132,7 +141,20 @@ class GradientDescent():
 
 
     def exactLineSearch(self):
-        self.d = self.g
+        '''
+        Exact line serach to minimize the function phi(alpha)
+
+        Parameters
+
+            d : direction
+            
+
+        Return
+
+            alpha : return the value of alpha
+        '''
+
+        self.d = self.f_gradient
 
         dTd = np.matmul(self.d.T, self.d)
         xTd = np.matmul(self.x.T, self.d)

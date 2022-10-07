@@ -1,40 +1,44 @@
 import numpy as np
-import logging
 from numpy import linalg as la
 
 class NoUpdate(Exception):
     pass
-    # def print(self):
-    #     log.info("optimal value reached")
 
 class MaxIterations(Exception):
     pass
-    # def print(self):
-    #     log.info("Stopped for iterations")
 
 class InvalidAlpha(Exception):
     pass
-    # def print(self):
-    #     log.info("Alpha too much small")
 
 class UnboundedFunction(Exception):
     pass
-    # def print(self):
-    #     log.info("The function is unbounded")
+
 class ValueError(Exception):
     pass
 
 
 class conjugateGradient():
     def __init__(self, function, x, eps, fstar, method='FR', verbose = True):
-        #arrays to store history
+        '''
+        Initialize the conjugate gradient class
+
+        Parameters
+
+            function : function to minimize [f(x) = (x^T M x) / x^T x , where M = A^T A]
+            x : starting point
+            eps : stopping criteria
+            fstar : optimal value of the function
+            method : "PR"
+                     "FR"
+            verbose : to print values
+        '''
         self.norm_history = []
         self.function_value_history = []
         self.error_history = []
 
         self.verbose = verbose
         self.function = function
-        self.feval = 1
+        self.iter = 1
         self.eps = eps
         self.fstar = fstar
         self.x = x
@@ -43,86 +47,90 @@ class conjugateGradient():
         self.ratek = 0
         self.method = method
 
-        self.v = -self.function.func_value(self.x)
-        self.g = self.function.func_grad(self.x)
-        self.pOld = -1 # old value of p
-        self.p = -self.g
-        self.B = 0 #initial value of Beta
-        self.gTg = np.dot(self.g.T, self.g)
-        self.ng = la.norm(self.gTg) 
-        if self.eps < 0: # stopping criteria
-            self.ng0 = - np.sqrt(self.gTg)
+        self.f_value = -self.function.func_value(self.x)
+        self.f_gradient = self.function.func_grad(self.x)
+        self.prev_p = -1
+        self.p = -self.f_gradient
+        self.B = 0
+        self.gTg = np.dot(self.f_gradient.T, self.f_gradient)
+        self.gradient_norm = la.norm(self.f_gradient) 
+        
+        if self.eps < 0:
+            self.initial_gradient_norm = - self.gradient_norm
         else:
-            self.ng0 = 1
+            self.initial_gradient_norm = 1
 
         
 
     def step(self):
-        # self.v = self.function.func_value(self.x)
-        # p = -g
-        self.norm_history.append(float(np.sqrt(self.gTg)))
-        self.function_value_history.append(float(self.v))
-        self.error_history.append(float(abs(self.v - self.fstar) / abs(self.fstar)))
+        '''
+        Conjugate gradient step to do at every iteration
+        '''
+        self.norm_history.append(float(self.gradient_norm))
+        self.function_value_history.append(float(self.f_value))
+        self.error_history.append(float(abs(self.f_value - self.fstar) / abs(self.fstar)))
 
-        g = self.function.func_grad(self.x)
-        #     # Da aggiustare un po' il rate di convergenza
-        #     #==============================================
+        prev_g = self.function.func_grad(self.x)
         if self.prev_value != 0:
-            self.ratek = (self.v - self.fstar) / (self.prev_value - self.fstar)
+            self.ratek = (self.f_value - self.fstar) / (self.prev_value - self.fstar)
 
-        self.prev_value = self.v
-        #     #==============================================
+        self.prev_value = self.f_value
 
         alpha = self.exactLineSearch(-self.p)
+        self.gradient_norm = la.norm(self.f_gradient) 
 
-        if self.ng <= self.eps * self.ng0:
+        if self.gradient_norm <= self.eps * self.initial_gradient_norm:
             raise NoUpdate()
 
-        # if we iterate more times then maxIter we stop
-        if self.feval >= self.maxIter:
+        if self.iter >= self.maxIter:
             raise MaxIterations()
 
-        # step too short
-        # if alpha <= conf.mina:
         if alpha <= 1e-16:
             raise InvalidAlpha()
 
-        # now we will update all the CG variables
-        g = self.g
-        self.oldgTg  = self.gTg
-        self.pOld = self.p
+        prev_g = self.f_gradient
+        self.prev_gTg  = self.gTg
+        self.prev_p = self.p
 
         self.x = self.x + alpha * self.p
-        self.v = - self.function.func_value(self.x)
-        self.g = self.function.func_grad(self.x)
-        self.feval = self.feval + 1
-        self.gTg = np.dot(self.g.T, self.g)
-        self.ng = la.norm(self.gTg) 
+        self.f_value = - self.function.func_value(self.x)
+        self.f_gradient = self.function.func_grad(self.x)
+        self.iter = self.iter + 1
+        self.gTg = np.dot(self.f_gradient.T, self.f_gradient)
 
-        # calculate beta.
         if self.method == 'FR':
-            self.B = self.gTg / self.oldgTg
+            self.B = self.gTg / self.prev_gTg
         elif self.method == 'PR':
-            y_hat = self.g - g
-            self.B  = np.dot(self.g.T, y_hat) / self.oldgTg 
-        elif self.method == 'HS':
-            y_hat = self.g - g
-            self.B  = np.dot(self.g.T, y_hat) / np.dot(self.p.T, y_hat)
+            y_hat = self.f_gradient - prev_g
+            self.B  = np.dot(self.f_gradient.T, y_hat) / self.prev_gTg 
         else:
             raise ValueError('Method not implemented')
         
-        self.p = -self.g + ((self.pOld)*self.B)
+        self.p = -self.f_gradient + ((self.prev_p)*self.B)
 
-        # Unbounded function controll
-        if self.v <= - float("inf"):
+        if self.f_value <= - float("inf"):
             raise UnboundedFunction()
 
         if self.verbose == True:
-            print("iteration %d, f(x) = %0.4f, ||gradient(f(x))|| = %f, alpha=%0.4f, rate=%0.4f" %(self.feval, self.v, self.gTg, alpha, self.ratek)) 
+            print("iteration %d, f(x) = %0.4f, ||gradient(f(x))|| = %f, alpha=%0.4f, rate=%0.4f" %(self.iter, self.f_value, self.gTg, alpha, self.ratek)) 
 
 
 
     def run(self, maxIter=500):
+        '''
+        Function to run the algorithm
+
+        Parameters
+
+            maxIter : max number of iterations before stopping the algorithm
+
+
+        Return
+
+            self.norm_history : array containing the values of the norm of the gradient until stop
+            self.function_value_history : array containing the values of the function norm until stop
+            self.error_history : array containing the values of errors between the function value at iteration k and the optimal value until stop
+        '''
         assert maxIter > 1
 
         self.maxIter = maxIter
@@ -130,7 +138,7 @@ class conjugateGradient():
         if self.verbose == True:
             print("[start]")
 
-        for self.feval in range(0,maxIter+1):
+        for self.iter in range(0,maxIter+1):
             try:
                 self.step()
             except UnboundedFunction:
@@ -147,7 +155,7 @@ class conjugateGradient():
                     print("optimal value reached")
                 break
             
-            self.feval = self.feval + 1
+            self.iter = self.iter + 1
 
         if self.verbose == True:
             print("[end]")
@@ -157,6 +165,18 @@ class conjugateGradient():
 
 
     def exactLineSearch(self, d):
+        '''
+        Exact line serach to minimize the function phi(alpha)
+
+        Parameters
+
+            d : direction
+
+
+        Return
+
+            alpha : return the value of alpha
+        '''
         self.d = d
 
         dTd = np.matmul(self.d.T, self.d)
