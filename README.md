@@ -10,9 +10,9 @@ pip install -r requirements.txt
 # How to use
 ## To check our results
 You have several experiments performed on the 5 matrices we generated as specified in the report:
-* One using Gradient Descent (Gradient Descent.ipynb)
+* One using Gradient Descent (GD.ipynb)
 * Two using Conjugate Gradient Descent once with FR and once with PR to calculate beta (CG-FR.ipynb & CG-PR.ipynb)
-* One that graphically compares Gradient Descent and Conjugate Gradient Descent (CG-experiment.ipynb)
+* One that graphically compares Gradient Descent and Conjugate Gradient Descent (algorithm-comparisons.ipynb)
 
 
 ## From Scratch
